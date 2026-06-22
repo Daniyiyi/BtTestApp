@@ -3,7 +3,13 @@
     package="com.brcm.bttestapp">
 
     <application
+        android:name=".BtTestApplication"
         android:label="@string/app_name">
+        <service
+            android:name=".BluetoothMonitorService"
+            android:enabled="true"
+            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
