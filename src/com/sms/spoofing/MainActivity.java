@@ -2,16 +2,10 @@ package com.sms.spoofing;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.role.RoleManager;
 import android.bluetooth.BluetoothAdapter;
-import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
@@ -23,7 +17,6 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 
     private static final String TAG = "MainActivity";
-    private static final String CHANNEL_ID = "sms_test_messages";
     private static final int REQUEST_DEFAULT_SMS = 1001;
     private static final int REQUEST_RUNTIME_PERMISSIONS = 1002;
 
@@ -44,7 +37,7 @@ public class MainActivity extends Activity {
         Button defaultSmsButton = findViewById(R.id.defaultSmsButton);
         Button sendTestButton = findViewById(R.id.sendTestButton);
 
-        createNotificationChannel();
+        SmsTestNotifier.createNotificationChannel(this);
         requestRuntimePermissions();
 
         defaultSmsButton.setOnClickListener(view -> requestDefaultSmsRole());
@@ -105,78 +98,19 @@ public class MainActivity extends Activity {
             return;
         }
 
-        String sender = "+15551234567";
-        String body = "Bluetooth car SMS test from SMS Spoofing";
-        long now = System.currentTimeMillis();
-
-        Uri inserted = insertInboxSms(sender, body, now);
-        postMessageNotification(sender, body, inserted);
+        SmsTestNotifier.createTestMessage(
+                this,
+                SmsTestNotifier.DEFAULT_SENDER,
+                SmsTestNotifier.DEFAULT_BODY);
         Toast.makeText(this, "Test SMS notification created", Toast.LENGTH_SHORT).show();
     }
 
-    private Uri insertInboxSms(String sender, String body, long timestampMillis) {
-        ContentValues values = new ContentValues();
-        values.put(Telephony.Sms.ADDRESS, sender);
-        values.put(Telephony.Sms.BODY, body);
-        values.put(Telephony.Sms.DATE, timestampMillis);
-        values.put(Telephony.Sms.READ, 0);
-        values.put(Telephony.Sms.SEEN, 0);
-        values.put(Telephony.Sms.TYPE, Telephony.Sms.MESSAGE_TYPE_INBOX);
-        return getContentResolver().insert(Telephony.Sms.Inbox.CONTENT_URI, values);
-    }
-
-    private void postMessageNotification(String sender, String body, Uri smsUri) {
-        Intent openIntent = new Intent(this, MainActivity.class);
-        if (smsUri != null) {
-            openIntent.setData(smsUri);
-        }
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                this,
-                0,
-                openIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-
-        NotificationManager notificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        android.app.Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-                ? new android.app.Notification.Builder(this, CHANNEL_ID)
-                : new android.app.Notification.Builder(this);
-        android.app.Notification notification = builder
-                .setSmallIcon(android.R.drawable.sym_action_chat)
-                .setContentTitle(sender)
-                .setContentText(body)
-                .setStyle(new android.app.Notification.BigTextStyle().bigText(body))
-                .setCategory(android.app.Notification.CATEGORY_MESSAGE)
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true)
-                .build();
-        notificationManager.notify(1, notification);
-    }
-
     private boolean isDefaultSmsApp() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            RoleManager roleManager = getSystemService(RoleManager.class);
-            if (roleManager != null
-                    && roleManager.isRoleAvailable(RoleManager.ROLE_SMS)
-                    && roleManager.isRoleHeld(RoleManager.ROLE_SMS)) {
-                return true;
-            }
-        }
-
-        String defaultPackage = Telephony.Sms.getDefaultSmsPackage(this);
-        return getPackageName().equals(defaultPackage);
+        return SmsTestNotifier.isDefaultSmsApp(this);
     }
 
     private String getDefaultSmsDebugStatus() {
-        String roleStatus = "n/a";
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            RoleManager roleManager = getSystemService(RoleManager.class);
-            if (roleManager != null && roleManager.isRoleAvailable(RoleManager.ROLE_SMS)) {
-                roleStatus = roleManager.isRoleHeld(RoleManager.ROLE_SMS) ? "held" : "not held";
-            }
-        }
-        return "This package: " + getPackageName()
-                + "\nRoleManager SMS role: " + roleStatus;
+        return SmsTestNotifier.getRoleDebugStatus(this);
     }
 
     private void requestRuntimePermissions() {
@@ -204,19 +138,6 @@ public class MainActivity extends Activity {
         if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
             permissions.add(permission);
         }
-    }
-
-    private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return;
-        }
-        NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID,
-                "SMS test messages",
-                NotificationManager.IMPORTANCE_HIGH);
-        channel.setDescription("Test SMS-style notifications for Bluetooth car message access");
-        NotificationManager notificationManager = getSystemService(NotificationManager.class);
-        notificationManager.createNotificationChannel(channel);
     }
 
     private void updateStatus() {

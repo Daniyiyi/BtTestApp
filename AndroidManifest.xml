@@ -50,6 +50,14 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name=".TestSmsBroadcastReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.sms.spoofing.action.SEND_TEST_SMS" />
+            </intent-filter>
+        </receiver>
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
