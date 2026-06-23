@@ -1,0 +1,12 @@
+.gradle/
+build/
+out/
+*.apk
+*.aab
+*.ap_
+*.dex
+local.properties
+
+.idea/workspace.xml
+.idea/caches/
+*.iml
