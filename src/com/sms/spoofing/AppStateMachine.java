@@ -1,4 +1,4 @@
-package com.brcm.bttestapp;
+package com.sms.spoofing;
 
 public final class AppStateMachine {
 

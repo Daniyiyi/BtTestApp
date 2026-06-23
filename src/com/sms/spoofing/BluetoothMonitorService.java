@@ -1,4 +1,4 @@
-package com.brcm.bttestapp;
+package com.sms.spoofing;
 
 import android.app.Service;
 import android.content.Intent;

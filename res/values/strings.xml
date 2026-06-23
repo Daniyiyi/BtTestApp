@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">BtTestApp</string>
+    <string name="app_name">SMS Spoofing</string>
+    <string name="status_checking">Checking SMS role and Bluetooth state...</string>
+    <string name="become_default_sms">Use as default SMS app</string>
+    <string name="send_test_sms_notification">Send test SMS notification</string>
+    <string name="car_help_text">Pair the phone to the car, enable message access for the Bluetooth device, make this app the default SMS app, then send a test notification.</string>
 </resources>
